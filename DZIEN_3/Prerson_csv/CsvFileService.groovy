@@ -12,7 +12,7 @@ class CsvFileService {
         def lines = []
         //nagłówek
         lines << "name;age;city"
-        
+
         persons.each {p ->
             lines << "${p.name};${p.age};${p.city}"
         }
@@ -22,7 +22,33 @@ class CsvFileService {
     /**
      * Odczytuje plik csv i mapuje wiersze na obiekty Person
      */
-    
-    
+
+    List<Person> readPersons(Path path) {
+        if (!Files.exists(path)){
+            return []
+        }
+        
+        def allLines = Files.readAllLines(path,StandardCharsets.UTF_8)
+        if (allLines.isEmpty()){
+            return []
+        }
+        
+        //pomijamy nagłówek (pierwsza linia)
+        def dataLines = allLines.tail()
+        
+        dataLines.collect {
+            line ->
+                def parts = line.split(';')
+                if (parts.size() != 3){
+                    return null
+                }
+                
+                new Person(
+                        name:parts[0],
+                        age:parts[1] as int,
+                        city:parts[2]
+                )
+        }.findAll {it != null}
+    }
 
 }
